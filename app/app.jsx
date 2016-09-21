@@ -28,3 +28,4 @@ ReactDOM.render(
   document.getElementById('app')
 );
 */
+require('./redux-example.jsx');
