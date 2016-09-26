@@ -1,10 +1,11 @@
 var redux = require('redux');
+var axios = require('axios');
 
 console.log('starting redux example');
 
 
 //--------------------------------------------
-//-Redux Reducers
+//-Redux Reducers and Action Generators
 //--------------------------------------------
 //--Name Reducer
 var nameReducer = (state = 'Anonymous', action) => {
@@ -16,7 +17,16 @@ var nameReducer = (state = 'Anonymous', action) => {
 	}
 };
 
+//--------------------------------------------
+//-Name Action Generators
+var changeName = (name) => {
+	return {
+		type: 'CHANGE_NAME',
+		name: name
+	}
+};
 
+//--------------------------------------------
 //--Hobby Reducer
 var hobbyReducer = function() {
 	let nextHobbyID = 1;
@@ -38,6 +48,23 @@ var hobbyReducer = function() {
 	};
 }();//Must invoke function so that it returns the ES6 function
 
+//--------------------------------------------
+//-Hobby Action Generators
+var addHobby = (hobby) => {
+	return {
+		type: 'ADD_HOBBY',
+		hobby: hobby
+	}
+};
+
+var removeHobby = (id) => {
+	return {
+		type: 'REMOVE_HOBBY',
+		hobbyid: id
+	}
+};
+
+//--------------------------------------------
 //--Movie Reducer
 var movieReducer = function () {
 	let nextMovieID = 1;
@@ -60,38 +87,8 @@ var movieReducer = function () {
 	};
 }();//Must invoke function so that it returns the ES6 function
 
-//combine reducers takes an object that defines the reducers to call for each
-//part of the state object
-var reducer = redux.combineReducers({
-	name: nameReducer,
-	hobbies: hobbyReducer,
-	movies: movieReducer
-});
-
 //--------------------------------------------
-//-Action Generators
-//--------------------------------------------
-var changeName = (name) => {
-	return {
-		type: 'CHANGE_NAME',
-		name: name
-	}
-};
-
-var addHobby = (hobby) => {
-	return {
-		type: 'ADD_HOBBY',
-		hobby: hobby
-	}
-};
-
-var removeHobby = (id) => {
-	return {
-		type: 'REMOVE_HOBBY',
-		hobbyid: id
-	}
-};
-
+//-Movie Action Generators
 var addMovie = (movie, genre) => {
 	return {
 		type: 'ADD_MOVIE',
@@ -106,6 +103,65 @@ var removeMovie = (id) => {
 		id: id
 	}
 };
+
+//--------------------------------------------
+//--Map Reducer
+var mapReducer = (state = {isFetching: false, url: undefined}, action) => {
+	switch (action.type) {
+		case 'START_LOCATION_FETCH':
+			return {
+				isFetching: true,
+				url: undefined
+			}
+		case 'COMPLETE_LOCATION_FETCH':
+			return {
+				isFetching: false,
+				url: action.url
+			}
+		default:
+			return state;
+	}
+};
+//--------------------------------------------
+//-Map Action Generators
+var startLocationFetch = () => {
+	return {
+		type: 'START_LOCATION_FETCH'
+	}
+};
+var completeLocationFetch = (url) => {
+	return {
+		type: 'COMPLETE_LOCATION_FETCH',
+		url: url
+	}
+};
+
+//--Map; fetching location
+var fetchLocation = () => {
+	//Update state, letting it know we are starting the fetch process
+	store.dispatch(startLocationFetch());
+
+	axios.get('http://ipinfo.io').then(function (response){
+		//send the url to the action generator, and then dispatch the return Object
+		let url = `http://maps.google.com/?q=${response.data.loc}`;
+		console.log(url);
+		store.dispatch(completeLocationFetch(url));
+	}).catch(function (error) {
+    console.log(error);
+  });
+}
+
+
+
+//combine reducers takes an object that defines the reducers to call for each
+//part of the state object
+var reducer = redux.combineReducers({
+	name: nameReducer,
+	hobbies: hobbyReducer,
+	movies: movieReducer,
+	map: mapReducer
+});
+
 //--------------------------------------------
 //--------------------------------------------
 //-Create Store and subscribe callback
@@ -114,18 +170,26 @@ var store = redux.createStore(reducer, redux.compose(
 		window.devToolsExtension ? window.devToolsExtension() : f => f));
 
 var unsubscribe = store.subscribe(() => {
-	console.log('Current State: ', store.getState());
-})
+	const state = store.getState();
+	console.log('Current State: ', state);
+
+	if (state.map.isFetching) {
+		document.getElementById('app').innerHTML = 'FETCHING...';
+	} else if (state.map.url) {
+		document.getElementById('app').innerHTML = `<a target="_blank" href="${state.map.url}">View Your Location</a>`;
+	}
+
+});
 
 //--------------------------------------------
 //Redux Dispatch calls
 //--------------------------------------------
-store.dispatch(changeName('John'));
+fetchLocation();
 
+store.dispatch(changeName('John'));
 store.dispatch(changeName('Mark'));
 
 store.dispatch(addHobby('Qi Gong'));
-
 store.dispatch(addHobby('Programming'));
 
 store.dispatch(removeHobby(2));
