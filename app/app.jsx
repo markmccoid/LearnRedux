@@ -28,6 +28,6 @@ ReactDOM.render(
   document.getElementById('app')
 );
 */
-require('./redux-exampleClosure.jsx');
+require('./redux-example.jsx');
 // require('./redux-example.jsx');
 // require('./redux-todo-example.jsx');

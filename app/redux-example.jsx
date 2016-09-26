@@ -1,87 +1,41 @@
 var redux = require('redux');
+var axios = require('axios');
+
+var actions = require('./actions/index');
+var store = require('./store/configurestore').configure();
 
 console.log('starting redux example');
 
-const stateDefault = {
-		name: 'Anonymous',
-		hobbies: [],
-		movies: []
-};
+var unsubscribe = store.subscribe(() => {
+	const state = store.getState();
+	console.log('Current State: ', state);
 
-var nextHobbyID = 1;
-
-var reducer = (state = stateDefault, action) => {
-	//state = state || {name: 'Anonymous'};
-	var nextMovieID = 1;
-	console.log('new action: ', action);
-	switch (action.type)
-	{
-		case 'CHANGE_NAME':
-			return {
-				...state,
-				name: action.name
-			};
-		case 'ADD_HOBBY':
-			return{
-				...state,
-				hobbies: [
-					...state.hobbies,
-					{
-						hobbyID: nextHobbyID++,
-						hobby: action.hobby
-					}
-				]
-			};
-		case 'ADD_MOVIE':
-			return {
-				...state,
-				movies: [
-					...state.movies,
-					{
-						movieID: nextMovieID++,
-						movie: action.movie,
-						genre: action.genre
-					}
-				]
-			}
-		default:
-			return state;
+	if (state.map.isFetching) {
+		document.getElementById('app').innerHTML = 'FETCHING...';
+	} else if (state.map.url) {
+		document.getElementById('app').innerHTML = `<a target="_blank" href="${state.map.url}">View Your Location</a>`;
 	}
 
-};
-
-var store = redux.createStore(reducer, redux.compose(
-		window.devToolsExtension ? window.devToolsExtension() : f => f));
-
-var unsubscribe = store.subscribe(() => {
-	console.log('Current State: ', store.getState());
-})
-var currentState = store.getState();
-console.log('currentState', currentState);
-
-store.dispatch({
-	type: 'CHANGE_NAME',
-	name: 'Mark'
 });
 
-store.dispatch({
-	type: 'ADD_HOBBY',
-	hobby: 'Qi Gong'
-});
-store.dispatch({
-	type: 'ADD_HOBBY',
-	hobby: 'Programming'
-});
+//--------------------------------------------
+//Redux Dispatch calls
+//--------------------------------------------
+store.dispatch(actions.fetchLocation());
 
-store.dispatch({
-	type: 'ADD_MOVIE',
-	movie: 'Spiderman',
-	genre: 'Action'
-});
-store.dispatch({
-	type: 'ADD_MOVIE',
-	movie: 'Batman',
-	genre: 'Action'
-});
+store.dispatch(actions.changeName('John'));
+store.dispatch(actions.changeName('Mark'));
+
+store.dispatch(actions.addHobby('Qi Gong'));
+store.dispatch(actions.addHobby('Programming'));
+
+store.dispatch(actions.removeHobby(2));
+
+store.dispatch(actions.addHobby('Bodybuilding'));
+
+store.dispatch(actions.addMovie('Spiderman','Action'));
+store.dispatch(actions.addMovie('Batman','Action'));
+
+store.dispatch(actions.removeMovie(2));
 
 console.log('name should be mark', store.getState());
