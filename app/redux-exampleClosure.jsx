@@ -2,70 +2,11 @@ var redux = require('redux');
 
 console.log('starting redux example');
 
-const stateDefault = {
-		name: 'Anonymous',
-		hobbies: [],
-		movies: []
-};
 
 //--------------------------------------------
-//-Redux Reducer
+//-Redux Reducers
 //--------------------------------------------
-var Oldreducer = function () {
-	//Create a closure over the ID variables to keep out of Global scope
-	var nextHobbyID = 1;
-	var nextMovieID = 1;
-	return (
-		(state = stateDefault, action) => {
-		//state = state || {name: 'Anonymous'};
-
-		console.log('new action: ', action);
-		switch (action.type)
-		{
-			case 'CHANGE_NAME':
-				return {
-					...state,
-					name: action.name
-				};
-			case 'ADD_HOBBY':
-				return{
-					...state,
-					hobbies: [
-						...state.hobbies,
-						{
-							hobbyID: nextHobbyID++,
-							hobby: action.hobby
-						}
-					]
-				};
-			case 'REMOVE_HOBBY':
-				return {
-					...state,
-					hobbies: state.hobbies.filter( (item) => item.hobbyID !== action.hobbyid)
-				}
-			case 'ADD_MOVIE':
-				return {
-					...state,
-					movies: [
-						...state.movies,
-						{
-							movieID: nextMovieID++,
-							movie: action.movie,
-							genre: action.genre
-						}
-					]
-				}
-			case 'REMOVE_MOVIE':
-				return {
-					...state,
-					movies: state.movies.filter((movie) => movie.movieID !== action.id)
-				}
-			default:
-				return state;
-		}
-	});
-}();//Must invoke function so that it returns the ES6 function
-
+//--Name Reducer
 var nameReducer = (state = 'Anonymous', action) => {
 	switch (action.type) {
 		case 'CHANGE_NAME':
@@ -75,6 +16,8 @@ var nameReducer = (state = 'Anonymous', action) => {
 	}
 };
 
+
+//--Hobby Reducer
 var hobbyReducer = function() {
 	let nextHobbyID = 1;
 	return (state = [], action) => {
@@ -93,8 +36,9 @@ var hobbyReducer = function() {
 				return state;
 		}
 	};
-}();
+}();//Must invoke function so that it returns the ES6 function
 
+//--Movie Reducer
 var movieReducer = function () {
 	let nextMovieID = 1;
 	return (state = [], action) => {
@@ -114,7 +58,8 @@ var movieReducer = function () {
 				return state;
 		}
 	};
-}();
+}();//Must invoke function so that it returns the ES6 function
+
 //combine reducers takes an object that defines the reducers to call for each
 //part of the state object
 var reducer = redux.combineReducers({
@@ -122,6 +67,46 @@ var reducer = redux.combineReducers({
 	hobbies: hobbyReducer,
 	movies: movieReducer
 });
+
+//--------------------------------------------
+//-Action Generators
+//--------------------------------------------
+var changeName = (name) => {
+	return {
+		type: 'CHANGE_NAME',
+		name: name
+	}
+};
+
+var addHobby = (hobby) => {
+	return {
+		type: 'ADD_HOBBY',
+		hobby: hobby
+	}
+};
+
+var removeHobby = (id) => {
+	return {
+		type: 'REMOVE_HOBBY',
+		hobbyid: id
+	}
+};
+
+var addMovie = (movie, genre) => {
+	return {
+		type: 'ADD_MOVIE',
+		movie: movie,
+		genre: genre
+	}
+};
+
+var removeMovie = (id) => {
+	return {
+		type: 'REMOVE_MOVIE',
+		id: id
+	}
+};
+//--------------------------------------------
 //--------------------------------------------
 //-Create Store and subscribe callback
 //--------------------------------------------
@@ -135,48 +120,22 @@ var unsubscribe = store.subscribe(() => {
 //--------------------------------------------
 //Redux Dispatch calls
 //--------------------------------------------
-store.dispatch({
-	type: 'CHANGE_NAME',
-	name: 'John'
-});
+store.dispatch(changeName('John'));
 
-store.dispatch({
-	type: 'CHANGE_NAME',
-	name: 'Mark'
-});
+store.dispatch(changeName('Mark'));
 
-store.dispatch({
-	type: 'ADD_HOBBY',
-	hobby: 'Qi Gong'
-});
-store.dispatch({
-	type: 'ADD_HOBBY',
-	hobby: 'Programming'
-});
+store.dispatch(addHobby('Qi Gong'));
 
-store.dispatch({
-	type: 'REMOVE_HOBBY',
-	hobbyid: 2
-});
+store.dispatch(addHobby('Programming'));
 
-store.dispatch({
-	type: 'ADD_HOBBY',
-	hobby: 'Bodybuilding'
-});
-store.dispatch({
-	type: 'ADD_MOVIE',
-	movie: 'Spiderman',
-	genre: 'Action'
-});
-store.dispatch({
-	type: 'ADD_MOVIE',
-	movie: 'Batman',
-	genre: 'Action'
-});
-store.dispatch({
-	type: 'REMOVE_MOVIE',
-	id: 2
-});
+store.dispatch(removeHobby(2));
+
+store.dispatch(addHobby('Bodybuilding'));
+
+store.dispatch(addMovie('Spiderman','Action'));
+store.dispatch(addMovie('Batman','Action'));
+
+store.dispatch(removeMovie(2));
 
 console.log('name should be mark', store.getState());
 
